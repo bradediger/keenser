@@ -20,7 +20,7 @@ randomHex n = map (digits !!) . take n . randomRs (0, 15) <$> getStdGen
 digits :: [Char]
 digits = ['0' .. '9'] ++ ['A' .. 'F']
 
-mkJob :: MonadIO m => Worker m a -> a -> m (Job a)
+mkJob :: MonadIO m => Worker w a -> a -> m (Job a)
 mkJob Worker{..} args = liftIO $ do
   _id <- BSC.pack <$> randomHex 12
   now <- getCurrentTime

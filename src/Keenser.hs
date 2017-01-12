@@ -84,17 +84,17 @@ register Worker{..} = modify $ \c -> c { kWorkers = M.insert workerName w $ kWor
         Data.Aeson.Error   err -> $(logError) $ "job failed to parse: " <> T.pack (show obj) <> " / " <> T.pack err
 
 
-enqueue :: (ToJSON a, MonadIO m) => Manager -> Worker m a -> a -> m ()
+enqueue :: (ToJSON a, MonadIO m) => Manager -> Worker w a -> a -> m ()
 enqueue Manager{..} w args = do
   job <- mkJob w args
   liftIO . void . runRedis managerRedis $ queue job
 
-enqueueAt :: (ToJSON a, MonadIO m) => UTCTime -> Manager -> Worker m a -> a -> m ()
+enqueueAt :: (ToJSON a, MonadIO m) => UTCTime -> Manager -> Worker w a -> a -> m ()
 enqueueAt at Manager{..} w args = do
   job <- mkJob w args
   liftIO . void . runRedis managerRedis $ zadd "schedule" [(timeToDouble at, LBS.toStrict $ encode job)]
 
-enqueueIn :: (ToJSON a, MonadIO m) => Rational -> Manager -> Worker m a -> a -> m ()
+enqueueIn :: (ToJSON a, MonadIO m) => Rational -> Manager -> Worker w a -> a -> m ()
 enqueueIn snds m w args = do
   now <- liftIO getCurrentTime
   enqueueAt (snds `secondsFrom` now) m w args
